@@ -23,6 +23,8 @@ IMAGE_ID=$(oci compute image list \
   --sort-by TIMECREATED --sort-order DESC \
   --query 'data[0].id' --raw-output)
 
+SSH_KEY_CLEAN=$(echo "$SSH_PUBLIC_KEY" | tr -d '\n\r')
+
 echo "Tentative de création de l'instance..."
 output=$(oci compute instance launch \
   --compartment-id "$OCI_TENANCY_OCID" \
@@ -33,7 +35,7 @@ output=$(oci compute instance launch \
   --subnet-id "$OCI_SUBNET_ID" \
   --display-name "$INSTANCE_NAME" \
   --assign-public-ip true \
-  --metadata "{\"ssh_authorized_keys\": \"$SSH_PUBLIC_KEY\"}" \
+  --metadata "{\"ssh_authorized_keys\": \"$SSH_KEY_CLEAN\"}" \
   --wait-for-state RUNNING 2>&1)
 status=$?
 
