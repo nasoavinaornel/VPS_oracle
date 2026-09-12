@@ -44,8 +44,8 @@ if [[ $status -eq 0 ]]; then
   IP=$(echo "$output" | grep -o '"publicIp": *"[^"]*"' | head -1 | cut -d'"' -f4 || echo "voir console Oracle")
   notify "✅ VPS Oracle créé avec succès ! IP publique: ${IP}"
   echo "SUCCESS"
-elif echo "$output" | grep -qi "Out of host capacity"; then
-  echo "Pas de capacité disponible, on réessaiera dans 5 min."
+elif echo "$output" | grep -qiE "Out of host capacity|TooManyRequests"; then
+  echo "Pas de capacité ou trop de requêtes, on réessaiera dans 5 min."
   echo "RETRY"
 else
   echo "$output"
