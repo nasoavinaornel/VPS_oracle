@@ -42,30 +42,12 @@ jobs:
 
       - name: Diagnostic secrets (sans rien exposer)
         run: |
-          check_format() {
-            local name="$1" val="$2" expected_prefix="$3"
-            echo "$name : longueur=${#val}"
-            if [[ "$val" == "$expected_prefix"* ]]; then
-              echo "$name : commence bien par $expected_prefix -> OK"
-            else
-              echo "$name : NE commence PAS par $expected_prefix -> PROBLEME"
-            fi
-            if [[ "$val" == *"="* ]]; then
-              echo "$name : contient un signe = -> SUSPECT (as-tu copié 'user=xxx' au lieu de 'xxx' ?)"
-            fi
-            if [[ "$val" =~ [[:space:]]$ ]] || [[ "$val" =~ ^[[:space:]] ]]; then
-              echo "$name : espace ou saut de ligne en trop détecté -> PROBLEME"
-            fi
-          }
-          check_format "OCI_USER_OCID" "$OCI_USER_OCID" "ocid1.user.oc1"
-          check_format "OCI_TENANCY_OCID" "$OCI_TENANCY_OCID" "ocid1.tenancy.oc1"
-          check_format "OCI_REGION" "$OCI_REGION" "eu-paris-1"
-          check_format "OCI_FINGERPRINT" "$OCI_FINGERPRINT" ""
+          echo "--- OCI_TENANCY_OCID en hexadécimal (20 premiers octets) ---"
+          echo -n "$OCI_TENANCY_OCID" | head -c 20 | xxd
+          echo "--- OCI_TENANCY_OCID longueur totale ---"
+          echo -n "$OCI_TENANCY_OCID" | wc -c
         env:
-          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
           OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
 
       - name: Try create instance
         id: attempt
