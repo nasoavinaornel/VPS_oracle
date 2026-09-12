@@ -14,14 +14,15 @@ notify() {
 echo "Recherche du domaine de disponibilité..."
 AD=$(oci iam availability-domain list --compartment-id "$OCI_TENANCY_OCID" --query 'data[0].name' --raw-output)
 
-echo "Recherche de l'image Debian 12 la plus récente..."
+echo "Recherche de l'image Ubuntu la plus récente..."
 IMAGE_ID=$(oci compute image list \
   --compartment-id "$OCI_TENANCY_OCID" \
-  --operating-system "Debian" \
-  --operating-system-version "12" \
+  --operating-system "Canonical Ubuntu" \
   --shape "$SHAPE" \
   --sort-by TIMECREATED --sort-order DESC \
   --query 'data[0].id' --raw-output)
+
+echo "Image trouvée: $IMAGE_ID"
 
 SSH_KEY_CLEAN=$(echo "$SSH_PUBLIC_KEY" | tr -d '\n\r')
 
