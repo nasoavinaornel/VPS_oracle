@@ -32,12 +32,28 @@ jobs:
           region=${OCI_REGION}
           key_file=~/.oci/key.pem
           EOF
+          chmod 600 ~/.oci/config
         env:
           OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
           OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
           OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
           OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
           OCI_REGION: ${{ secrets.OCI_REGION }}
+
+      - name: Diagnostic clé API
+        run: |
+          echo "--- Nombre de lignes dans key.pem ---"
+          wc -l ~/.oci/key.pem
+          echo "--- Première ligne (30 premiers caractères) ---"
+          head -1 ~/.oci/key.pem | cut -c1-30
+          echo "--- Dernière ligne (30 premiers caractères) ---"
+          tail -1 ~/.oci/key.pem | cut -c1-30
+          echo "--- Fingerprint calculé depuis la clé ---"
+          openssl rsa -pubout -outform DER -in ~/.oci/key.pem 2>/dev/null | openssl md5 -c
+          echo "--- Fingerprint attendu (secret) ---"
+          echo "${OCI_FINGERPRINT}"
+        env:
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
 
       - name: Try create instance
         id: attempt
