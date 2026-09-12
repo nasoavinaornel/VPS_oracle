@@ -40,19 +40,31 @@ jobs:
           OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
           OCI_REGION: ${{ secrets.OCI_REGION }}
 
-      - name: Diagnostic clé API
+      - name: Diagnostic secrets (sans rien exposer)
         run: |
-          echo "--- Nombre de lignes dans key.pem ---"
-          wc -l ~/.oci/key.pem
-          echo "--- Première ligne (30 premiers caractères) ---"
-          head -1 ~/.oci/key.pem | cut -c1-30
-          echo "--- Dernière ligne (30 premiers caractères) ---"
-          tail -1 ~/.oci/key.pem | cut -c1-30
-          echo "--- Fingerprint calculé depuis la clé ---"
-          openssl rsa -pubout -outform DER -in ~/.oci/key.pem 2>/dev/null | openssl md5 -c
-          echo "--- Fingerprint attendu (secret) ---"
-          echo "${OCI_FINGERPRINT}"
+          check_format() {
+            local name="$1" val="$2" expected_prefix="$3"
+            echo "$name : longueur=${#val}"
+            if [[ "$val" == "$expected_prefix"* ]]; then
+              echo "$name : commence bien par $expected_prefix -> OK"
+            else
+              echo "$name : NE commence PAS par $expected_prefix -> PROBLEME"
+            fi
+            if [[ "$val" == *"="* ]]; then
+              echo "$name : contient un signe = -> SUSPECT (as-tu copié 'user=xxx' au lieu de 'xxx' ?)"
+            fi
+            if [[ "$val" =~ [[:space:]]$ ]] || [[ "$val" =~ ^[[:space:]] ]]; then
+              echo "$name : espace ou saut de ligne en trop détecté -> PROBLEME"
+            fi
+          }
+          check_format "OCI_USER_OCID" "$OCI_USER_OCID" "ocid1.user.oc1"
+          check_format "OCI_TENANCY_OCID" "$OCI_TENANCY_OCID" "ocid1.tenancy.oc1"
+          check_format "OCI_REGION" "$OCI_REGION" "eu-paris-1"
+          check_format "OCI_FINGERPRINT" "$OCI_FINGERPRINT" ""
         env:
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
 
       - name: Try create instance
