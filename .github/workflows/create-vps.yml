@@ -1,9 +1,11 @@
 name: Create Oracle VPS
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
+
+concurrency:
+  group: create-vps
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -39,15 +41,6 @@ jobs:
           OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
           OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
           OCI_REGION: ${{ secrets.OCI_REGION }}
-
-      - name: Diagnostic secrets (sans rien exposer)
-        run: |
-          echo "--- OCI_TENANCY_OCID en hexadécimal (20 premiers octets) ---"
-          echo -n "$OCI_TENANCY_OCID" | head -c 20 | xxd
-          echo "--- OCI_TENANCY_OCID longueur totale ---"
-          echo -n "$OCI_TENANCY_OCID" | wc -c
-        env:
-          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
 
       - name: Try create instance
         id: attempt
