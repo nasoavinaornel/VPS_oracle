@@ -3,8 +3,8 @@ set -uo pipefail
 
 INSTANCE_NAME="mon-vps-free"
 SHAPE="VM.Standard.A1.Flex"
-OCPUS=2
-MEMORY_GB=12
+OCPUS="${OCPUS:-2}"
+MEMORY_GB="${MEMORY_GB:-12}"
 
 notify() {
   curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
@@ -14,6 +14,9 @@ notify() {
 summary() {
   echo "$1" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 }
+
+echo "=== Configuration demandée : ${OCPUS} OCPU / ${MEMORY_GB} Go de RAM ==="
+summary "**Demande : ${OCPUS} OCPU / ${MEMORY_GB} Go de RAM**"
 
 echo "=== 1. Instances déjà présentes dans le compte ==="
 oci compute instance list --compartment-id "$OCI_TENANCY_OCID" --all \
@@ -70,7 +73,7 @@ if [[ $status -eq 0 ]]; then
   INSTANCE_ID=$(echo "$output" | grep -o '"id": *"ocid1.instance[^"]*"' | head -1 | cut -d'"' -f4)
   IP=$(oci compute instance list-vnics --instance-id "$INSTANCE_ID" \
     --query 'data[0]."public-ip"' --raw-output 2>/dev/null)
-  notify "✅ VPS Oracle créé ! IP publique : ${IP:-voir console Oracle}"
+  notify "✅ VPS Oracle créé ! IP publique : ${IP:-voir console Oracle} (${OCPUS} OCPU / ${MEMORY_GB} Go)"
   summary "### ✅ VPS créé — IP : ${IP:-voir console Oracle}"
   echo "SUCCESS"
   exit 0
